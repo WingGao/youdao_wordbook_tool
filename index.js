@@ -115,7 +115,7 @@ async function buildMyBook() {
     let books = {}
     postData('http://dict.youdao.com/wordbook/api?keyfrom=mac.main&id=80:E6:50:00:E4:EE&model=MacBookPro11,2&deviceid=C02N62Q0G3QC&mid=Mac%20OS%20X%2010.13.6&requestNum=2000', {
         version: 2,
-        data: `<?xml version="1.0" encoding="utf-8" ?><request><type>words</type><operation>update</operation><maxLocalTimestamp>0</maxLocalTimestamp><maxRemLocalTimestamp>1549107251805</maxRemLocalTimestamp></request>`,
+        data: `<?xml version="1.0" encoding="utf-8" ?><request><type>words</type><operation>update</operation><maxLocalTimestamp>0</maxLocalTimestamp><maxRemLocalTimestamp>${new Date().getTime()}</maxRemLocalTimestamp></request>`,
     }, {
         headers: {
             Cookie: Config.youdao.cookie
@@ -143,6 +143,7 @@ async function buildMyBook() {
     })
 }
 
+// 有道单词表验证时间戳
 let youdaoBookInfo = {
     maxServerTimestamp: 0,
     maxRemServerTimestamp: 0,
