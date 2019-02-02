@@ -33,13 +33,22 @@ function postJson(url, obj, conf = {}) {
     }).then(res => res.json())
 }
 
-
+/**
+ * 查询有道单词
+ * @param wordEn
+ * @returns {*}
+ */
 function getYoudaoWord(wordEn) {
     return fetch(`http://dict.youdao.com/jsonapi?q=${encodeURIComponent(wordEn)}&doctype=json&keyfrom=mac.main&id=92EAC020C265501643DB359450E87E0E&vendor=cidian.youdao.com&appVer=2.3.3&client=macdict&jsonversion=2`, {
         headers: { Cookie: Config.youdao.cookie }
     }).then(res => res.json())
 }
 
+/**
+ * 获取墨墨的单词本
+ * @param id
+ * @returns {PromiseLike<{content: string | DocumentFragment, words: any[]}> | Promise<{content: string | DocumentFragment, words: any[]}>}
+ */
 function getMaimemoBook(id = Config.maimemo.bookid) {
     return fetch(`https://www.maimemo.com/api/v1/notepads/${id}?token=`, {
         headers: { Cookie: Config.maimemo.cookie }
@@ -57,6 +66,12 @@ function getMaimemoBook(id = Config.maimemo.bookid) {
     })
 }
 
+/**
+ * 将有道单词本同步到墨墨的单词本 bookid
+ * 只同步墨墨有的单词，目前墨墨不支持自定义单词内容
+ * 将墨墨没有的单词重新移动到另一个有道单词表 noresulttag
+ * @returns {Promise<void>}
+ */
 async function buildMaimemo() {
     //检测墨墨里有没有
     let maimemoBook = await getMaimemoBook()
@@ -66,12 +81,13 @@ async function buildMaimemo() {
         }
         return v
     }).filter(v => !v.maimemoOld)
-
+    // 检测墨墨是否有该单词
     let maimeoExists = await postJson('https://www.maimemo.com/api/v1/vocabulary/check_exists?token=', {
         spellings: newWords.map(v => v.name)
     }, {
         headers: { Cookie: Config.maimemo.cookie }
     })
+    // 这些是新词
     let words = _.values(myBook.words).filter(v => !v.maimemoOld)
     for (let i = 0; i < words.length; i++) {
         let word = words[i]
@@ -79,7 +95,7 @@ async function buildMaimemo() {
             word.maimemoExist = true
         } else {
             console.log('fetch ', word.name)
-            // 移动到cfa-mo
+            // 先要获取释义，再移动
             let t = new Date().getTime()
             await getYoudaoWord(word.name).then(res => {
                 word.youdaoData = res
@@ -113,6 +129,8 @@ async function buildMaimemo() {
 
 async function buildMyBook() {
     let books = {}
+    // 获取有道单词本
+    //TODO 超过2000的时候怎么办？
     postData('http://dict.youdao.com/wordbook/api?keyfrom=mac.main&id=80:E6:50:00:E4:EE&model=MacBookPro11,2&deviceid=C02N62Q0G3QC&mid=Mac%20OS%20X%2010.13.6&requestNum=2000', {
         version: 2,
         data: `<?xml version="1.0" encoding="utf-8" ?><request><type>words</type><operation>update</operation><maxLocalTimestamp>0</maxLocalTimestamp><maxRemLocalTimestamp>${new Date().getTime()}</maxRemLocalTimestamp></request>`,
@@ -123,10 +141,9 @@ async function buildMyBook() {
     }).then(res => {
         return res.text()
     }).then(res => {
-
         let jsonObj = parser.parse(res)
         console.log(jsonObj)
-
+        // 将单词分类到单词本
         jsonObj.response.actionlist.action.forEach(action => {
             let book = books[action.tags]
             if (book == null) {
