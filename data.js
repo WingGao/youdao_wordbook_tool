@@ -21,35 +21,30 @@ class Word {
 
     getCn() {
         let ec = this.youdaoData.ec
-        if (ec.word.length > 1) {
-            throw 'ec word length 1'
-            debugger
-        }
-        return ec.word[0].trs.map(tr => {
-            if (tr.tr.length > 1) {
-                throw `tr.tr.length > 1`
+        if (ec != null) {
+            if (ec.word.length > 1) {
+                throw 'ec word length 1'
                 debugger
             }
-            return tr.tr[0].l.i.join('、')
-        }).join(';')
+            return ec.word[0].trs.map(tr => {
+                if (tr.tr.length > 1) {
+                    throw `tr.tr.length > 1`
+                    debugger
+                }
+                return tr.tr[0].l.i.join('、')
+            }).join(';')
+        } else {
+            let wt = this.youdaoData.web_trans['web-translation'][0]
+            return wt.trans.map(v => v.value).join(';')
+        }
     }
 
     toMaimemo() {
-        let ec = this.youdaoData.ec
-        if (ec.word.length > 1) {
-            throw 'ec word length 1'
-            debugger
-        }
+        let cn = this.getCn()
         return `
 ${this.name} {
     解释 {
-        ${ec.word[0].trs.map(tr => {
-            if (tr.tr.length > 1) {
-                throw `tr.tr.length > 1`
-                debugger
-            }
-            return tr.tr[0].l.i.join('、')
-        }).join(';')}
+        ${cn}
     }
 }
         `.trim()

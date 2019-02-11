@@ -120,13 +120,18 @@ async function buildMaimemo() {
         }
     }
     console.log('save...')
-    let output = words.filter(v => v.maimemoExist).map(v => v.name).join('\n')
-    output += words.filter(v => !v.maimemoExist).map(v => v.name).join('\n')
-    const flag = '//===wing==='
+    let wordsExist = words.filter(v => v.maimemoExist)
+    let wordsNotExist = words.filter(v => !v.maimemoExist)
+    const flag1 = '//===wing word==='
+    const flag2 = '//===wing body==='
+    //备份
     fs.writeFileSync(`backup/m${Config.maimemo.bookid}_${moment().format('YYYYMMDD_HHmmss')}.txt`, maimemoBook.content)
-    let bookTxt = maimemoBook.content.replace(flag, output + '\n' + flag)
-    output = words.filter(v => !v.maimemoExist).map(v => v.toMaimemo()).join('\n')
-    bookTxt = bookTxt.replace(flag, flag + '\n' + output + '\n')
+    // 插入已存在的
+    let bookTxt = maimemoBook.content.replace(flag1, wordsExist.map(v => v.name).join('\n') + '\n' + flag1)
+    // 插入不存在的
+    bookTxt = bookTxt.replace(flag2, wordsNotExist.map(v => v.name).join('\n') + '\n' + flag2)
+    // 插入自定义内容
+    bookTxt = bookTxt.replace(flag2, flag2 + '\n' + wordsNotExist.map(v => v.toMaimemo()).join('\n'))
     fs.writeFileSync(`m_${Config.maimemo.bookid}.txt`, bookTxt)
 }
 
