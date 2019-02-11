@@ -101,29 +101,32 @@ async function buildMaimemo() {
                 word.youdaoData = res
                 // console.log(word.toMaimemo())
             })
-            await postData(`http://dict.youdao.com/wordbook/api?keyfrom=mac.main&id=80:E6:50:00:E4:EE&model=MacBookPro11,2&deviceid=C02N62Q0G3QC&mid=Mac%20OS%20X%2010.13.6&requestNum=2000`, {
-                data: `<?xml version="1.0" encoding="utf-8" ?><request><type>words</type><operation>commit</operation><maxLocalTimestamp>${youdaoBookInfo.maxServerTimestamp}</maxLocalTimestamp><maxRemLocalTimestamp>${youdaoBookInfo.maxRemServerTimestamp}</maxRemLocalTimestamp>
+            // 移动单词
+            if (Config.youdao.noresulttag) {
+                await postData(`http://dict.youdao.com/wordbook/api?keyfrom=mac.main&id=80:E6:50:00:E4:EE&model=MacBookPro11,2&deviceid=C02N62Q0G3QC&mid=Mac%20OS%20X%2010.13.6&requestNum=2000`, {
+                    data: `<?xml version="1.0" encoding="utf-8" ?><request><type>words</type><operation>commit</operation><maxLocalTimestamp>${youdaoBookInfo.maxServerTimestamp}</maxLocalTimestamp><maxRemLocalTimestamp>${youdaoBookInfo.maxRemServerTimestamp}</maxRemLocalTimestamp>
                 <actionlist><action type="add"><word><![CDATA[${word.name}]]></word><wordInfo>
                 <phonetic><![CDATA[]]></phonetic><trans><![CDATA[${word.getCn()}]]></trans>
                 <tags><![CDATA[;${Config.youdao.noresulttag}]]></tags><addtime>${Math.round(t / 1000)}</addtime>
                 <flag>1</flag></wordInfo></action></actionlist></request>`,
-                version: 2,
-            }, { headers: { Cookie: Config.youdao.cookie } }).then(res => res.text()).then(res => {
-                let jsonObj = parser.parse(res)
-                youdaoBookInfo.maxServerTimestamp = jsonObj.response.maxServerTimestamp
-                youdaoBookInfo.maxRemServerTimestamp = jsonObj.response.maxRemServerTimestamp
-                // debugger
-            })
-
+                    version: 2,
+                }, { headers: { Cookie: Config.youdao.cookie } }).then(res => res.text()).then(res => {
+                    let jsonObj = parser.parse(res)
+                    youdaoBookInfo.maxServerTimestamp = jsonObj.response.maxServerTimestamp
+                    youdaoBookInfo.maxRemServerTimestamp = jsonObj.response.maxRemServerTimestamp
+                    // debugger
+                })
+            }
         }
     }
     console.log('save...')
     let output = words.filter(v => v.maimemoExist).map(v => v.name).join('\n')
+    output += words.filter(v => !v.maimemoExist).map(v => v.name).join('\n')
     const flag = '//===wing==='
     fs.writeFileSync(`backup/m${Config.maimemo.bookid}_${moment().format('YYYYMMDD_HHmmss')}.txt`, maimemoBook.content)
     let bookTxt = maimemoBook.content.replace(flag, output + '\n' + flag)
-    // output = words.filter(v => !v.maimemoExist).map(v => v.toMaimemo()).join('\n')
-    // bookTxt = bookTxt.replace(flag, flag + '\n' + output + '\n')
+    output = words.filter(v => !v.maimemoExist).map(v => v.toMaimemo()).join('\n')
+    bookTxt = bookTxt.replace(flag, flag + '\n' + output + '\n')
     fs.writeFileSync(`m_${Config.maimemo.bookid}.txt`, bookTxt)
 }
 
