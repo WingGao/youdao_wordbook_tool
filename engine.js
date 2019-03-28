@@ -40,9 +40,11 @@ class Engine {
         this.buildReq()
         if (this.isLogin) {
         } else {
+            logger.info(this.name, '登录中')
             await this.login()
             // logger.error(`${this.name} not login`)
         }
+        logger.info(this.name, '获取单词 开始')
         await this.work()
     }
 }

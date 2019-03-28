@@ -124,12 +124,16 @@ async function buildMaimemo(myBook, tobookid) {
     // 这些是新词
     let words = _.values(myBook.words).filter(v => !v.maimemoOld)
     logger.info('新词', words.length, '个')
+    let newwords_in_maimemo = []
+    let newwords_notin_maimemo = []
     for (let i = 0; i < words.length; i++) {
         let word = words[i]
         if (maimeoExists.data.exists.indexOf(word.name) >= 0) {
             word.maimemoExist = true
+            newwords_in_maimemo.push(word)
         } else {
             logger.info('fetch ', word.name)
+            newwords_notin_maimemo.push(word)
             // 先要获取释义，再移动
             let t = new Date().getTime()
             // await getYoudaoWord(word.name).then(res => {
@@ -172,6 +176,11 @@ async function buildMaimemo(myBook, tobookid) {
     logger.info('保存到墨墨', bookHash)
     let saveRes = await saveBook(bookHash, bookTxt)
     logger.info('success:', saveRes.success, 'errors:', saveRes.errors)
+    return {
+        newwords: words, // 新添加到墨墨的单词
+        newwords_in_maimemo,//默默里有的新词
+        newwords_notin_maimemo,//默默里没有的新词
+    }
 }
 
 module.exports = {

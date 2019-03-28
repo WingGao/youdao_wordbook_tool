@@ -15,6 +15,7 @@ class Langeasy extends Engine {
     constructor(props) {
         super('朗易思听');
         this.config = Config.langeasy
+        this.config.to_maimemo_bookid = _.defaultTo(this.config.to_maimemo_bookid, Config.maimemo.bookid)
     }
 
     login() {
