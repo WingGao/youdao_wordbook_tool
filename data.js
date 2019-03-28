@@ -20,6 +20,7 @@ class Word {
     }
 
     getCn() {
+        if (this.youdaoData == null) return ''
         let ec = this.youdaoData.ec
         if (ec != null) {
             if (ec.word.length > 1) {

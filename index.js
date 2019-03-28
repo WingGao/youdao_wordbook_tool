@@ -6,6 +6,7 @@ const parser = require('fast-xml-parser');
 const { Book, Word } = require('./data')
 const Config = require('./config')
 const moment = require('moment');
+const Langeasy = require('./engine_langeasy')
 
 function postData(url, form, conf = {}) {
     conf = _.merge({
@@ -175,4 +176,8 @@ let youdaoBookInfo = {
 }
 
 let myBook
-buildMyBook()
+// debug 添加环境变量 NODE_TLS_REJECT_UNAUTHORIZED=0
+// buildMyBook()
+let langeasyEngine = new Langeasy()
+// langeasyEngine.debug = true
+langeasyEngine.start()

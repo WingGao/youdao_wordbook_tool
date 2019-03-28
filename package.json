@@ -6,8 +6,11 @@
   "dependencies": {
     "fast-xml-parser": "^3.12.12",
     "lodash": "^4.17.11",
+    "log4js": "^4.1.0",
     "moment": "^2.24.0",
     "node-fetch": "^2.3.0",
-    "query-string": "^6.2.0"
+    "query-string": "^6.2.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.7"
   }
 }
