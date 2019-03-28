@@ -7,8 +7,8 @@
 
 * 复制`config.sample.js`为`config.js`
 * 修改配置, 有道用的是客户端的cookie，墨墨用的是网页端的cookie
-* 运行
-* 将本地文件`m_<bookid>.txt`里的内容复制到墨墨的词库编辑器里
+* 安装依赖 `yarn install`
+* 运行 `node index.js`
 
 ## 程序逻辑
 
