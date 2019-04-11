@@ -1,5 +1,7 @@
 const fetch = require('node-fetch')
+const os = require('os');
 const fs = require('fs');
+const path = require('path');
 const queryString = require('query-string');
 const _ = require('lodash')
 const parser = require('fast-xml-parser');
@@ -18,17 +20,22 @@ const req = rp.defaults({
 const ANKI_HOST = 'http://localhost:8765'
 
 const ANKI_NOTE_MODULES = {
-    Basic: 'Basic'
+    Basic: 'Basic',
+    BasicSound: 'BasicSound',
 }
+const ANKI_DIR = {
+    'darwin': path.join(os.homedir(), 'Library/Application Support/Anki2/User 1'),
+}[os.platform()]//.replace(/(\s+)/g, '\\$1')
 
 // https://foosoft.net/projects/anki-connect/index.html#notes-for-mac-os-x-users
 class AnkiNote {
     constructor(props) {
         this.deckName = null
-        this.modelName = ANKI_NOTE_MODULES.Basic
+        this.modelName = ANKI_NOTE_MODULES.BasicSound
         this.fields = {
             "Front": null,
             "Back": null,
+            "Sound": undefined,
         }
         this.options = {
             "allowDuplicate": false,
@@ -38,12 +45,18 @@ class AnkiNote {
     }
 
     addAudio(url, filename) {
-        this.audio = {
-            url: url,
-            filename: filename,
-            "fields": [
-                "Back"
-            ]
+        // 检查媒体文件
+        let isOk = fs.existsSync(path.join(ANKI_DIR, 'collection.media', filename))
+        if (isOk) {
+            this.fields.Sound += ` [sound:${filename}]`
+        } else {
+            this.audio = {
+                url: url,
+                filename: filename,
+                "fields": [
+                    "Sound"
+                ]
+            }
         }
     }
 

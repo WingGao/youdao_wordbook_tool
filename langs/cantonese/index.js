@@ -130,7 +130,7 @@ function parseDict(fname) {
 // let words = parseDict(path.resolve(__dirname, 'data/cidian_zhyue-jt-kfcd-yp-2018620.txt'))
 // fs.writeFileSync(path.resolve(__dirname, 'data/cidian.json'), json5.stringify(words))
 
-function loadDict(fname) {
+function loadDict(fname, option = { checkChar: false, }) {
     let dictTxt = fs.readFileSync(fname)
     let dictArray = json5.parse(dictTxt)
     dictArray = _.shuffle(dictArray)
@@ -237,7 +237,8 @@ function downloadAudioXf(text, fname) {
     })
 }
 
-async function buildAnki(fname) {
+async function buildAnki(fname, deckName) {
+    if (deckName == null) return
     let phArrayTxt = fs.readFileSync(fname)
     let phArray = json5.parse(phArrayTxt)
     let proArr = []
@@ -246,7 +247,7 @@ async function buildAnki(fname) {
     for (let i = beginIndex; i < phArray.length; i++) {
         let ph = phArray[i]
         let note = new AnkiNote()
-        note.deckName = '粤语1'
+        note.deckName = deckName
         note.fields.Front = ph.name
         let canAdd = await note.canAdd()
         if (!canAdd) {
@@ -255,7 +256,8 @@ async function buildAnki(fname) {
             continue
         }
 
-        note.fields.Back = ph.words.map(v => v.yp).join(' ') + '<br>' + (ph.mean == null ? '' : ph.mean)
+        note.fields.Sound = ph.words.map(v => v.yp).join(' ')
+        note.fields.Back = (ph.mean == null ? '' : ph.mean)
         note.addAudio(`http://localhost:3000/loc/sounds/${ph.name}.mp3`, `yy1_${ph.name}.mp3`)
         let a1 = await downloadAudioXf(ph.name)
         if (a1 === true) {
@@ -278,5 +280,5 @@ async function buildAnki(fname) {
 let app = express()
 app.use('/loc', express.static(path.resolve(__dirname)))
 app.listen(3000, () => {
-    buildAnki(path.resolve(__dirname, 'dis_cidiian.json'))
+    buildAnki(path.resolve(__dirname, 'dis_cidiian.json'), '粤语1') // 初级
 })
