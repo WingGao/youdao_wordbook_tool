@@ -179,7 +179,7 @@ function downloadAudioXf(text, fname) {
     let xParam = {
         auf: 'audio/L16;rate=16000',
         aue: 'lame', //mp3
-        voice_name: 'x_xiaomei',
+        voice_name: 'x_xiaomei', //粤语
         "speed": "30",
         "volume": "70",
         "pitch": "50",
@@ -188,8 +188,7 @@ function downloadAudioXf(text, fname) {
     }
     let xParamBase = JSON.stringify(xParam)
     xParamBase = new Buffer.from(xParamBase).toString('base64')
-    let appid = Config.xunfei.appid
-    let appkey = Config.xunfei.appkey
+    let { appid, appkey } = Config.xunfei.apps[0]
     let ct = Math.floor(new Date().getTime() / 1000)
     const md5 = crypto.createHash('md5');
     let checksum = md5.update(appkey + ct + xParamBase).digest('hex')
@@ -220,10 +219,9 @@ function downloadAudioXf(text, fname) {
                 // Send the buffer or you can put it into a var
                 response.on("end", function () {
                     let srt = Buffer.concat(chunks).toString()
-                    console.log(srt)
+                    req1.emit('error', srt)
                 });
-                response.read()
-                req1.emit('error')
+                // response.read()
                 debugger
             } else {
                 response.pipe(fs.createWriteStream(fname))
@@ -234,7 +232,7 @@ function downloadAudioXf(text, fname) {
             // console.log(err)
             req1.pause()
             haserr = true
-            resolve(false)
+            resolve(err)
         })
     })
 }
@@ -244,7 +242,8 @@ async function buildAnki(fname) {
     let phArray = json5.parse(phArrayTxt)
     let proArr = []
     logger.info('总单词', phArray.length)
-    for (let i = 0; i < phArray.length; i++) {
+    let beginIndex = 0
+    for (let i = beginIndex; i < phArray.length; i++) {
         let ph = phArray[i]
         let note = new AnkiNote()
         note.deckName = '粤语1'
@@ -252,24 +251,26 @@ async function buildAnki(fname) {
         let canAdd = await note.canAdd()
         if (!canAdd) {
             // 已存在
-            logger.info('跳过', ph.name)
+            logger.info('跳过', i, ph.name)
             continue
         }
 
         note.fields.Back = ph.words.map(v => v.yp).join(' ') + '<br>' + (ph.mean == null ? '' : ph.mean)
         note.addAudio(`http://localhost:3000/loc/sounds/${ph.name}.mp3`, `yy1_${ph.name}.mp3`)
         let a1 = await downloadAudioXf(ph.name)
-        if (a1) {
+        if (a1 === true) {
             let res = await addNote(note)
             if (res.error != null) {
                 if (res.error == 'cannot create note because it is a duplicate') {
                     continue
                 }
+                logger.error(i, ph.name, res.error)
                 debugger
+                return
             }
-            logger.info('添加anki', ph.name, res.result)
+            logger.info('添加anki', i, ph.name, res.result)
         } else {
-            logger.info('没有语音', ph.name)
+            logger.info('没有语音', i, ph.name, a1)
         }
     }
 }

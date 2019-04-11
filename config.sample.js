@@ -19,8 +19,12 @@ let Config = {
         to_maimemo_bookid: undefined, // 需要同步到的墨墨单词本，如果不填，则使用默认的
     },
     xunfei: {
-        appid: '',
-        appkey: '',
+        apps: [
+            {
+                appid: '',
+                appkey: '',
+            },
+        ],
     },
 }
 module.exports = Config
