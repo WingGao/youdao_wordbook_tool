@@ -16,6 +16,7 @@ class CantoneseWord {
         this.name = null // 单字
         this.yp = null // 粤拼
         this.simple = null // 简体字
+        this.tradiction = null // 繁体
     }
 }
 
@@ -129,6 +130,27 @@ function parseDict(fname) {
 
 // let words = parseDict(path.resolve(__dirname, 'data/cidian_zhyue-jt-kfcd-yp-2018620.txt'))
 // fs.writeFileSync(path.resolve(__dirname, 'data/cidian.json'), json5.stringify(words))
+
+function parseDictZidian(fname) {
+    let dictTxt = fs.readFileSync(fname)
+    let dictArray = json5.parse(dictTxt)
+    let wordMap = {}
+    for(let i=0;i<dictArray.length;i++){
+        let word = new CantoneseWord()
+        word.simple = dictArray[i]
+        i++
+        word.tradiction = dictArray[i]
+        i++
+        word.yp = dictArray[i]
+        wordMap[word.simple] = word
+        wordMap[word.tradiction] = word
+    }
+    return wordMap
+}
+
+let words = parseDictZidian(path.resolve(__dirname, 'data/zidian_zhyue-jt-kfcd-yp-2018620.txt'))
+fs.writeFileSync(path.resolve(__dirname, 'data/zidian.json'), JSON.stringify(words))
+
 
 function loadDict(fname, option = { checkChar: false, }) {
     let dictTxt = fs.readFileSync(fname)
@@ -277,8 +299,14 @@ async function buildAnki(fname, deckName) {
     }
 }
 
-let app = express()
-app.use('/loc', express.static(path.resolve(__dirname)))
-app.listen(3000, () => {
-    buildAnki(path.resolve(__dirname, 'dis_cidiian.json'), '粤语1') // 初级
-})
+function main() {
+    let app = express()
+    app.use('/loc', express.static(path.resolve(__dirname)))
+    app.listen(3000, () => {
+        buildAnki(path.resolve(__dirname, 'dis_cidiian.json'), '粤语1') // 初级
+    })
+}
+
+module.exports = {
+    CantoneseWord,
+}
