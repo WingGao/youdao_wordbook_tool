@@ -36,6 +36,15 @@ class Engine {
 
     }
 
+    /**
+     * 查询单词
+     * @param word {string}
+     * @returns {Promise<any>}
+     */
+    async lookup(word) {
+        return null
+    }
+
     async start() {
         this.buildReq()
         if (this.isLogin) {

@@ -2,6 +2,7 @@
 
 * 将 有道单词本 同步到 墨墨背单词
 * 将 朗易思听（不背单词/轻听英语）同步到 墨墨背单词
+* 将其他平台倒入`Anki`
 
 ## 使用
 
@@ -32,3 +33,12 @@
 ## TODO
 
 无
+
+
+## 相关资料
+
+* https://github.com/terasum/js-mdict 
+* https://github.com/goldendict/goldendict
+* https://www.pdawiki.com/forum/forum.php?mod=viewthread&tid=35754 牛津9
+* https://www.pdawiki.com/forum/thread-35803-1-1.html 牛津9
+* https://freemdict.com/2019/08/07/oalecd9

@@ -9,6 +9,7 @@
     "fast-xml-parser": "^3.12.12",
     "fluent-ffmpeg": "^2.1.2",
     "inquirer": "^6.2.2",
+    "js-mdict": "^4.0.5",
     "json5": "^2.1.0",
     "lodash": "^4.17.13",
     "log4js": "^4.1.0",

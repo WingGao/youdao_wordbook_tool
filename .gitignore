@@ -1,5 +1,6 @@
 config.js
 m_*.txt
 backup/
+mdict/
 langs/cantonese/sounds
 temp
