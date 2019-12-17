@@ -22,6 +22,7 @@ const ANKI_HOST = 'http://localhost:8765'
 const ANKI_NOTE_MODULES = {
     Basic: 'Basic',
     BasicSound: 'BasicSound',
+    Ox9: 'Ox9',
 }
 const ANKI_DIR = {
     'darwin': path.join(os.homedir(), 'Library/Application Support/Anki2/User 1'),
@@ -31,48 +32,42 @@ const ANKI_DIR = {
 class AnkiNote {
     constructor(props) {
         this.deckName = null
-        this.modelName = ANKI_NOTE_MODULES.BasicSound
+        this.modelName = ANKI_NOTE_MODULES.Ox9
         this.fields = {
-            "Front": null,
-            "Back": null,
-            "Sound": undefined,
+            'Front': null,
+            'Back': null,
+            'Sound': undefined,
         }
         this.options = {
-            "allowDuplicate": false,
+            'allowDuplicate': false,
         }
         this.tags = []
         this.audio = null
     }
 
+    // 需要开启http服务
     addAudio(url, filename) {
         // 检查媒体文件
         let isOk = fs.existsSync(path.join(ANKI_DIR, 'collection.media', filename))
         if (isOk) {
-            this.fields.Sound += ` [sound:${filename}]`
+            this.fields.Sound += ` [sound:${ filename }]`
         } else {
             this.audio = {
                 url: url,
                 filename: filename,
-                "fields": [
-                    "Sound"
+                'fields': [
+                    'Sound'
                 ]
             }
         }
     }
 
     canAdd() {
-        return req.post(ANKI_HOST, {
-            body: {
-                "action": "canAddNotes",
-                "version": 6,
-                "params": {
-                    "notes": [this]
-                },
-            },
-            json: true,
-        }).then(res => {
-            return res.result[0]
-        })
+        return canAddAnki(this)
+    }
+
+    addAnki() {
+        return addNote(this)
     }
 }
 
@@ -87,14 +82,28 @@ audio = {
             }
  */
 
+function canAddAnki(note) {
+    return req.post(ANKI_HOST, {
+        body: {
+            'action': 'canAddNotes',
+            'version': 6,
+            'params': {
+                notes: [note]
+            },
+        },
+        json: true,
+    }).then(res => {
+        return res.result[0]
+    })
+}
 
 function addNote(note) {
     return req.post(ANKI_HOST, {
         body: {
-            "action": "addNote",
-            "version": 6,
-            "params": {
-                "note": note
+            'action': 'addNote',
+            'version': 6,
+            'params': {
+                'note': note
             }
         },
         json: true,
@@ -102,5 +111,5 @@ function addNote(note) {
 }
 
 module.exports = {
-    addNote, AnkiNote,
+    addNote, canAddAnki, AnkiNote,
 }

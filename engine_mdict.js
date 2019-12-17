@@ -4,104 +4,101 @@ const fs = require('fs');
 const path = require('path');
 const queryString = require('query-string');
 const _ = require('lodash')
-const parser = require('fast-xml-parser');
 const { Book, Word } = require('./data')
 const Config = require('./config')
 const moment = require('moment');
-const utils = require('./utils')
-const { logger } = utils
-const rp = require('request-promise-native')
-const Mdict = require("js-mdict").default
+const sqlite3 = require('sqlite3').verbose();
+const cheerio = require('cheerio')
 
 
-
-const req = rp.defaults({
-    // proxy: 'http://localhost:8888',
-    jar: true
-})
-
-const ANKI_HOST = 'http://localhost:8765'
-
-const ANKI_NOTE_MODULES = {
-    Basic: 'Basic',
-    BasicSound: 'BasicSound',
-}
-const ANKI_DIR = {
-    'darwin': path.join(os.homedir(), 'Library/Application Support/Anki2/User 1'),
-}[os.platform()]//.replace(/(\s+)/g, '\\$1')
-
-// https://foosoft.net/projects/anki-connect/index.html#notes-for-mac-os-x-users
-class MdictClient {
-    constructor(dict_path) {
-        this.path = dict_path
-        this.mdict = new Mdict(dict_path);
+class SqliteAsync {
+    constructor(db_path, mode) {
+        this.db = new sqlite3.Database(db_path, mode)
     }
 
-    load() {
-
-        // 检查媒体文件
-        let isOk = fs.existsSync(path.join(ANKI_DIR, 'collection.media', filename))
-        if (isOk) {
-            this.fields.Sound += ` [sound:${filename}]`
-        } else {
-            this.audio = {
-                url: url,
-                filename: filename,
-                "fields": [
-                    "Sound"
-                ]
-            }
-        }
-    }
-
-    canAdd() {
-        return req.post(ANKI_HOST, {
-            body: {
-                "action": "canAddNotes",
-                "version": 6,
-                "params": {
-                    "notes": [this]
-                },
-            },
-            json: true,
-        }).then(res => {
-            return res.result[0]
+    async get(sql, ...params) {
+        return new Promise(resolve => {
+            this.db.get(sql, ...params, (err, row) => {
+                resolve([err, row])
+            })
         })
     }
 }
 
-/*
-audio = {
-                "url": "https://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=猫&kana=ねこ",
-                "filename": "yomichan_ねこ_猫.mp3",
-                "skipHash": "7e2c2f954ef6051373ba916f000168dc",
-                "fields": [
-                    "Front"
-                ]
-            }
- */
+class MdictClient {
+    constructor(dict_path) {
+        if (dict_path == null) dict_path = path.resolve(__dirname, 'mdict/oalecd9.db') //默认使用牛津9
+        this.path = dict_path
+        this.db = new SqliteAsync(dict_path, sqlite3.OPEN_READONLY)
+    }
 
+    async lookup(name) {
+        let [err, row] = await this.db.get('SELECT * from mdx where entry = ?', name)
+        if (err != null || row == null) return null;
+        if (row.paraphrase.indexOf('@@@LINK') === 0) return null//不关联
+        const $ = cheerio.load(row.paraphrase)
+        let top = $('top-g')
+        let word = new Word()
+        word.name = name
+        // 找美音
+        let audious = top.find('audio-us')
+        if (audious.length > 0) {
+            audious = $(audious.get(0))
+            word.audioUS = { n: audious.find('phon').text(), f: audious.parent().attr('href') }
+            word.audioUS.f = await this.getRes(word.audioUS.f)
+        }
 
-function addNote(note) {
-    return req.post(ANKI_HOST, {
-        body: {
-            "action": "addNote",
-            "version": 6,
-            "params": {
-                "note": note
-            }
-        },
-        json: true,
-    })
+        let hg = $('h-g')
+        if (hg.length > 0) {
+            word.cn = `<h-g>${ $('h-g').html() }</h-g>`
+        } else { //多个词性
+            let divs = $('subentry-g')
+            word.cn = divs.map((i, v) => {
+                return `<div><subentry-g>${ $(v).html() }</subentry-g></div>`
+            }).get().join('\n')
+            // debugger
+        }
+        // idiom习语
+        $('idm-g').each((i, v) => {
+            v = $(v)
+            let sw = new Word()
+            sw.name = v.find('idm').text().replace(/[ˌˈ]/g, '')
+            sw.cn = `<div>${ v.html() }</div>`
+            sw.tags.push('idm')
+            word.pharas.push(sw)
+        })
+
+        return word
+    }
+
+    async getRes(res) {
+        if (res.indexOf('://') > 0) {
+            res = '\\' + res.split('://')[1]
+        }
+        let fname = path.resolve(__dirname, 'temp', res.substr(1))
+        if (fs.existsSync(fname)) {
+            return fname
+        }
+        let [err, row] = await this.db.get('SELECT * from mdd where entry = ?', res)
+        if (err == null && row != null) {
+            // let buf = new Buffer.from(row)
+            fs.writeFileSync(fname, row.file)
+            return fname
+        }
+        return null
+    }
 }
 
 
+async function test() {
+    // let client =new MdictClient('/Volumes/D/DevEnvs/dicts/牛津高阶第九版 v3.1.2/牛津高阶双解(第9版)_V3.1.2版.mdx')
+    let client = new MdictClient(path.resolve(__dirname, 'mdict/oalecd9.db'))
+    let word = await client.lookup('due')
 
-function test() {
-    let client =new MdictClient('/Volumes/D/DevEnvs/dicts/牛津高阶第九版 v3.1.2/牛津高阶双解(第9版)_V3.1.2版.mdx')
 }
-test()
+
+// test()
 
 module.exports = {
-    // addNote, AnkiNote,
+    MdictClient
 }

@@ -14,12 +14,17 @@ class Book {
 class Word {
     constructor() {
         this.name = null
+        this.audioUS = null //美音 {n:'音标',f:'音频文件'}
         this.youdaoData = null
+        this.cn = null //卡片内容-背面
         this.maimemoExist = false //墨墨词库存在
         this.maimemoOld = false //墨墨当前单词表存在
+        this.pharas = [] //其他词组或习语
+        this.tags = []
     }
 
     getCn() {
+        if (this.cn != null) return this.cn
         if (this.youdaoData == null) return ''
         let ec = this.youdaoData.ec
         if (ec != null) {
@@ -43,9 +48,9 @@ class Word {
     toMaimemo() {
         let cn = this.getCn()
         return `
-${this.name} {
+${ this.name } {
     解释 {
-        ${cn}
+        ${ cn }
     }
 }
         `.trim()

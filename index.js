@@ -22,6 +22,8 @@ function doAnswers(answers) {
 // langeasyEngine.debug = true
             langeasyEngine.start()
             break
+        case 10: //单词表-牛津词典-anki
+            break
     }
 }
 
