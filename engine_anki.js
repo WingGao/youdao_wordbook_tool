@@ -17,7 +17,7 @@ const req = rp.defaults({
     jar: true
 })
 
-const ANKI_HOST = 'http://localhost:8765'
+const ANKI_HOST = 'http://localhost:18765'
 
 const ANKI_NOTE_MODULES = {
     Basic: 'Basic',
@@ -29,6 +29,7 @@ const ANKI_DIR = {
 }[os.platform()]//.replace(/(\s+)/g, '\\$1')
 
 // https://foosoft.net/projects/anki-connect/index.html#notes-for-mac-os-x-users
+// 设置端口 18765
 class AnkiNote {
     constructor(props) {
         this.deckName = null
