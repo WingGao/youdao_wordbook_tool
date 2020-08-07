@@ -51,7 +51,7 @@ async function taskMoveAnkiMedia() {
   let deckName = '日语五十音';
   let sudDir = 'rywsy';
   let noteTypeName = 'text4';
-  let noteTypeId;
+  let noteTypeId = 1466847167726;
   if (noteTypeId == null) {
     await inquirer.prompt([{ type: 'confirm', name: '1', message: '请打开Anki' }]);
     noteTypeId = await client.findModelId(noteTypeName); //1466847167726;
@@ -79,7 +79,8 @@ async function taskMoveAnkiMedia() {
       replaceSound(fields.Pron1, sudDir);
       replaceSound(fields.Pron2, sudDir);
       let newFs = AnkiNote.combineFields(fields, fieldTypes);
-      toUpdates.push({ id: note.id, u: { flds: newFs } });
+      //去除tag
+      toUpdates.push({ id: note.id, u: { flds: newFs, tags: '' } });
     }
     console.log(notes.length);
     //开始更新
