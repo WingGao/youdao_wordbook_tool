@@ -6,7 +6,7 @@ class AnkiClient {
   client: AxiosInstance;
   version = 6;
   mediaPath: string;
-  constructor(c) {
+  constructor(c?) {
     c = _.merge(
       {
         host: 'http://localhost:18765',
@@ -19,7 +19,7 @@ class AnkiClient {
     });
     this.version = 6;
     this.mediaPath = c.mediaPath;
-    if (!fs.existsSync(this.mediaPath)) {
+    if (this.mediaPath != null && !fs.existsSync(this.mediaPath)) {
       throw new Error(`anki媒体文件夹不存在 ${this.mediaPath}`);
     }
   }
@@ -31,12 +31,25 @@ class AnkiClient {
       params,
     });
   }
+  // deck
+  deckNamesAndIds() {
+    return this.post('deckNamesAndIds');
+  }
 
   findCards(query) {
     return this.post('findCards', { query });
   }
 
   // notes https://github.com/FooSoft/anki-connect/blob/master/actions/notes.md
+  addNote(note) {
+    return this.post('addNote', { note });
+  }
+  canAddNotes(notes) {
+    return this.post('canAddNotes', {
+      notes,
+    });
+  }
+  // front:due
   findNotes(query) {
     return this.post('findNotes', { query });
   }
@@ -72,6 +85,8 @@ class AnkiClient {
       },
     });
   }
+
+  serveMedia() {}
 }
 
 export default AnkiClient;

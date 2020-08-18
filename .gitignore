@@ -4,3 +4,4 @@ backup/
 mdict/
 langs/cantonese/sounds
 temp
+config.ts

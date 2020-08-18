@@ -1,6 +1,8 @@
 const { defaults } = require('jest-config');
 
 module.exports = {
-    verbose: true,
-    bail: true,
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  verbose: true,
+  bail: true,
 };
