@@ -1,12 +1,12 @@
 import { Book, Word } from './data';
-
-const { logger } = require('./utils');
 import axios, { AxiosInstance } from 'axios';
-
+import { getLogger, Logger } from 'log4js';
 abstract class Engine {
   name: string;
   isLogin: boolean = false;
   req: AxiosInstance = null;
+  logger: Logger;
+  // @ts-ignore
   static get UA_BROWSER() {
     return 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
   }
@@ -17,6 +17,7 @@ abstract class Engine {
     this.req = axios.create({
       headers: { cookie, 'User-Agent': Engine.UA_BROWSER },
     });
+    this.logger = getLogger(name);
     // this.reqConfig = {
     //     jar: true,
     //     // proxy: 'http://localhost:8888',
@@ -48,22 +49,18 @@ abstract class Engine {
    * @param word {string}
    * @returns {Promise<any>}
    */
-  abstract async lookup(word): Promise<Word>;
+  abstract async lookup(word: string): Promise<Word>;
 
+  /**
+   * 添加单词，根据需求对单词进行细化
+   * @param book
+   * @param word
+   */
   async addWordToBook(book: Book, word: Word): Promise<boolean> {
     return false;
   }
 
-  async start() {
-    if (this.isLogin) {
-    } else {
-      logger.info(this.name, '登录中');
-      await this.login();
-      // logger.error(`${this.name} not login`)
-    }
-    logger.info(this.name, '获取单词 开始');
-    await this.work();
-  }
+  async start() {}
 }
 
 export default Engine;

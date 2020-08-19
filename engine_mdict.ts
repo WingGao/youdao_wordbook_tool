@@ -34,8 +34,8 @@ class MdictClient {
     this.db = new SqliteAsync(dict_path, sqlite3.OPEN_READONLY);
   }
 
-  async lookup(name) {
-    let [err, row] = await this.db.get('SELECT * from mdx where entry = ?', name);
+  async lookup(name: string) {
+    let [err, row] = await this.db.get('SELECT * from mdx where entry = ? limit 1', name);
     if (err != null || row == null) return null;
     if (row.paraphrase.indexOf('@@@LINK') === 0) return null; //不关联
     const $ = cheerio.load(row.paraphrase);

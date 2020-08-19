@@ -97,7 +97,7 @@ export default class EngineAnki extends Engine {
     throw new Error('not imp');
   }
 
-  async lookup(word): Promise<Word> {
+  async lookup(word: string): Promise<Word> {
     //使用mdict的方法
     return this.mdict.lookup(word);
   }
@@ -108,6 +108,19 @@ export default class EngineAnki extends Engine {
   }
 
   async addWordToBook(book: Book, word: Word): Promise<boolean> {
+    let wName = word.name;
+    let aNote = AnkiNote.fromWord(word);
+    aNote.deckName = book.name;
+    if (!(await this.canAdd(aNote))) {
+      this.logger.error('无法添加', wName);
+      return false;
+    }
+    this.logger.info('查询', wName);
+    word = await this.lookup(wName);
+    if (word == null) {
+      this.logger.error('无法查询', wName);
+      return false;
+    }
     let words = [word].concat(word.pharas);
     for (let w of words) {
       let note = AnkiNote.fromWord(w);
@@ -115,19 +128,19 @@ export default class EngineAnki extends Engine {
       // 判断在不在
       let ok = await this.canAdd(note);
       if (ok) {
-        console.log('Anki 添加', w.name);
+        this.logger.info('添加', w.name);
         if (w.audioUS) {
           note.addAudio(getLocalUrl(w.audioUS.f), path.basename(w.audioUS.f));
         }
         let res = await this.anki.addNote(note);
         if (res.data.result > 0 && res.data.error == null) {
           //成功
-          console.log('Anki 添加成功', w.name, res.data.result);
+          this.logger.info('添加成功', w.name, res.data.result);
         } else {
           throw new Error(res.data.error);
         }
       } else {
-        console.log('Anki 无法添加', w.name);
+        this.logger.error('无法添加', w.name);
       }
     }
     return true;

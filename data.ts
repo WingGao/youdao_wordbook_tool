@@ -3,7 +3,7 @@ export class Book {
   name: string;
   words: { [key: string]: Word } = {};
 
-  addWord(en) {
+  addWord(en: string) {
     let word = new Word();
     word.name = en.trim();
     this.words[word.name] = word;

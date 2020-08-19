@@ -8,6 +8,7 @@ import EngineAnki from './engine_anki';
 import Engine from './engine';
 import { Book } from './data';
 import { localServer } from './local';
+import EngineTxt from './engine_txt';
 const parser = require('fast-xml-parser');
 const Config = require('./config');
 const inquirer = require('inquirer');
@@ -47,7 +48,7 @@ async function main() {
       message: '选择单词来源',
       choices: [
         { name: '有道单词本', value: new Youdao() },
-        // { name: '朗易思听', value: 2 },
+        { name: 'TXT文件', value: new EngineTxt() },
       ],
     },
   ]);
@@ -71,13 +72,7 @@ async function main() {
   for (let i in wordNameList) {
     console.log(`${parseInt(i) + 1}/${wordNameList.length}`);
     let w = fromBook.words[wordNameList[i]];
-    console.log('查询', w.name);
-    let toWord = await to.lookup(w.name);
-    if (toWord == null) {
-      console.log('无该单词', w.name);
-      continue;
-    }
-    await to.addWordToBook(toBook, toWord);
+    await to.addWordToBook(toBook, w);
   }
 }
 main();
