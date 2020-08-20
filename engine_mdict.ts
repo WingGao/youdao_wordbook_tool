@@ -58,7 +58,7 @@ class MdictClient {
       let divs = $('subentry-g');
       word.cn = divs
         .map((i, v) => {
-          return `<div><subentry-g>${$(v).html()}</subentry-g></div>`;
+          return `<div>${$(v).parent().html()}</div>`;
         })
         .get()
         .join('\n');
@@ -68,12 +68,28 @@ class MdictClient {
     $('idm-g').each((i, v) => {
       v = $(v);
       let sw = new Word();
-      sw.name = v.find('idm').text().replace(/[ˌˈ]/g, '');
+      let idms = [];
+      v.find('idm').each((i, idm) => {
+        idms.push($(idm).text().replace(/[ˌˈ]/g, ''));
+      });
+      sw.name = idms.join(' | ');
       sw.cn = `<div>${v.html()}</div>`;
       sw.tags.push('idm');
       word.pharas.push(sw);
     });
-
+    // phr v
+    $('pv-g').each((i, pvg) => {
+      pvg = $(pvg);
+      let sw = new Word();
+      let pvs = [];
+      pvg.find('pv').each((j, pv) => {
+        pvs.push($(pv).text().replace(/[ˌˈ]/g, ''));
+      });
+      sw.name = pvs.join(' | ');
+      sw.cn = `<div>${pvg.html()}</div>`;
+      sw.tags.push('phr-v');
+      word.pharas.push(sw);
+    });
     return word;
   }
 
